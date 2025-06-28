@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPK Sesli Not Platformu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- 1. Karşılama Ekranı (Hero View) -->
+        <div id="hero-view" class="view active-view">
+            <div class="hero-content">
+                <svg class="sound-wave" viewBox="0 0 300 100" preserveAspectRatio="xMidYMid meet">
+                    <defs>
+                        <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color: #22d3ee;"></stop>
+                            <stop offset="100%" style="stop-color: #4f46e5;"></stop>
+                        </linearGradient>
+                        <linearGradient id="glowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color: #a5b4fc; stop-opacity: 0;"></stop>
+                            <stop offset="50%" style="stop-color: #e0e7ff; stop-opacity: 1;"></stop>
+                            <stop offset="100%" style="stop-color: #a5b4fc; stop-opacity: 0;"></stop>
+                        </linearGradient>
+                        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                            <feGaussianBlur in="SourceGraphic" stdDeviation="3"></feGaussianBlur>
+                        </filter>
+                    </defs>
+                    <path id="dynamic-wave"
+                          d="M0,50 C20,80 30,20 50,50 S70,90 90,50 S110,10 130,50 S150,85 170,50 S190,15 210,50 S230,80 250,50 S270,20 280,50 S290,70 300,50"
+                          stroke="url(#waveGradient)" stroke-width="2.5" fill="none">
+                    </path>
+                    <line x1="0" y1="50" x2="300" y2="50" stroke="url(#glowGradient)" stroke-width="4" filter="url(#glow)"></line>
+                </svg>
+                <h1>SPK Sınavlarına Sesli Notlarla Hazırlanın</h1>
+                <p>Modern, hızlı ve etkili bir öğrenme deneyimi için doğru yerdesiniz.</p>
+                <button id="show-exams-btn" class="cta-button">Sınavları Görüntüle</button>
+                <!-- YENİ İMZA BÖLÜMÜ -->
+                <div class="signature">
+                    Created by <a href="#" target="_blank">Murat Özgür Ünal</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Sınav Listesi Ekranı (Exam List View) -->
+        <div id="exam-list-view" class="view">
+            <div class="content-wrapper">
+                <h2>SPK Sınavları</h2>
+                <p>Çalışmak istediğiniz sınavı seçin.</p>
+                <ul class="exam-list">
+                    <li data-content-url="spk-level1.html" data-exam-title="Sermaye Piyasası Faaliyetleri Düzey 1 Lisansı">
+                        <span class="exam-icon">🎓</span>
+                        <span class="exam-title-text">Sermaye Piyasası Faaliyetleri Düzey 1 Lisansı</span>
+                        <span class="exam-arrow">→</span>
+                    </li>
+                </ul>
+                <div class="back-button-container">
+                    <button id="back-to-hero-btn" class="back-button outline">Ana Sayfaya Dön</button>
+                </div>
+                 <!-- YENİ İMZA BÖLÜMÜ -->
+                <div class="signature">
+                    Created by <a href="#" target="_blank">Murat Özgür Ünal</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Ders İçeriği Ekranı (Course Content View) -->
+        <div id="course-content-view" class="view">
+            <div class="content-wrapper">
+                <header class="course-header">
+                    <h2 id="course-title">Ders Başlığı</h2>
+                    <button id="back-to-exams-btn" class="back-button">Sınav Listesine Dön</button>
+                </header>
+                <div id="course-content-container">
+                    <!-- Dinamik içerik buraya yüklenecek -->
+                </div>
+                <!-- YENİ İMZA BÖLÜMÜ -->
+                <div class="signature">
+                    Created by <a href="#" target="_blank">Murat Özgür Ünal</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
