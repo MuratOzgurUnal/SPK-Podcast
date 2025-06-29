@@ -138,7 +138,7 @@ body {
     box-shadow: 0 7px 20px rgba(79, 70, 229, 0.5);
 }
 
-/* --- 2. SINAV LİSTESİ --- */
+/* --- 2. SINAV LİSTESİ (YENİDEN TASARLANDI) --- */
 #exam-list-view h2 {
     font-size: 1.8rem;
     margin-bottom: 0.5rem;
@@ -243,16 +243,6 @@ body {
     border-color: #d1d5db;
 }
 
-/* Dinamik ders içeriği blokları için */
-.course-content-block {
-    display: none; /* Varsayılan olarak gizli */
-}
-
-.course-content-block.active {
-    display: block; /* Aktif olduğunda görünür */
-}
-
-
 /* --- AKORDİYON MENÜ --- */
 .accordion-item {
     border: 1px solid var(--border-color);
@@ -294,6 +284,7 @@ body {
 .topic-araclar .accordion-header::before {
     content: '📈';
 }
+
 
 .accordion-item.active .accordion-header {
     background-image: linear-gradient(to right, var(--primary-color), #6366f1);
