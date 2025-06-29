@@ -1,5 +1,3 @@
-// script.js dosyasının yeni hali
-
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- 1. DOM ELEMENTLERİNİ SEÇME ---
@@ -17,10 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 2. ANA FONKSİYONLAR ---
 
-    /**
-     * Belirtilen görünümü aktif hale getirir, diğerlerini gizler.
-     * @param {HTMLElement} viewToShow - Gösterilecek olan görünümün (div) elementi.
-     */
     function showView(viewToShow) {
         heroView.classList.remove('active-view');
         examListView.classList.remove('active-view');
@@ -28,66 +22,65 @@ document.addEventListener('DOMContentLoaded', () => {
         viewToShow.classList.add('active-view');
     }
 
-    /**
-     * Akordiyon menüye tıklama işlevselliği kazandırır.
-     * BU FONKSİYON SADECE BİR KERE, SAYFA YÜKLENİRKEN ÇAĞRILACAK.
-     * Olay delegasyonu (event delegation) sayesinde, sonradan eklenen
-     * içeriklerde bile sorunsuz çalışacaktır.
-     */
     function initAccordion() {
         courseContentContainer.addEventListener('click', (event) => {
             const header = event.target.closest('.accordion-header');
             if (!header) return;
 
             const accordionItem = header.parentElement;
-            
-            // Tıklanan akordiyonun ait olduğu ana içerik bloğundaki diğer akordiyonları bul
             const parentBlock = accordionItem.closest('.course-content-block');
             if (!parentBlock) return;
 
             const allItems = parentBlock.querySelectorAll('.accordion-item');
-
-            // Sadece tıklanan dışındakileri kapat
             allItems.forEach(item => {
                 if (item !== accordionItem) {
                     item.classList.remove('active');
                 }
             });
-
-            // Tıklanana 'active' class'ını ekle/kaldır
             accordionItem.classList.toggle('active');
         });
     }
-
+    
     /**
-     * Verilen URL'den ders içeriğini asenkron olarak çeker, DOM'a ekler ve gösterir.
-     * Eğer içerik zaten eklenmişse, sadece onu gösterir.
-     * @param {string} url - Yüklenecek HTML parçasının dosya yolu.
-     * @param {string} title - Ders sayfasında gösterilecek başlık.
+     * Bir içerik bloğundaki tüm ses elemanlarını "Hard Reset" yapar.
+     * Bu, mobil tarayıcılarda oynatma sorunlarını çözmek içindir.
+     * @param {HTMLElement} block - Ses elemanlarını içeren blok.
      */
+    function resetAudioElements(block) {
+        const audioElements = block.querySelectorAll('audio');
+        console.log(`Resetting ${audioElements.length} audio elements.`);
+        
+        audioElements.forEach(audio => {
+            // Orijinal kaynak yolunun data-src'de saklandığından emin ol
+            const originalSrc = audio.dataset.src;
+            if (originalSrc) {
+                // Kaynağı sıfırla ve yeniden yükle
+                audio.src = originalSrc;
+                audio.load();
+            }
+        });
+    }
+
     async function loadCourseContent(url, title) {
         courseTitleElement.textContent = title;
 
-        // 1. Adım: Tüm mevcut ders bloklarını gizle
+        // 1. Tüm mevcut ders bloklarını gizle
         const allContentBlocks = courseContentContainer.querySelectorAll('.course-content-block');
         allContentBlocks.forEach(block => block.classList.remove('active'));
 
-        // 2. Adım: Bu URL'ye ait içerik bloğu DOM'da zaten var mı diye kontrol et
+        // 2. Bu URL'ye ait içerik bloğu DOM'da zaten var mı diye kontrol et
         let targetBlock = courseContentContainer.querySelector(`.course-content-block[data-content-url="${url}"]`);
 
         if (targetBlock) {
-            // 3. Adım (EĞER VARSA): Sadece göster ve fonksiyondan çık
+            // 3. EĞER VARSA: Bloğu göster ve sesleri "Hard Reset" yap
             console.log(`İçerik DOM'dan bulundu ve gösteriliyor: ${url}`);
             targetBlock.classList.add('active');
             showView(courseContentView);
-
-            // Safari için ekstra güvence: Ses elemanlarını tekrar yüklemeyi dene
-            targetBlock.querySelectorAll('audio').forEach(audio => audio.load());
-
+            resetAudioElements(targetBlock); // <-- EN ÖNEMLİ ADIM BURASI
             return;
         }
 
-        // 4. Adım (EĞER YOKSA): Fetch ile içeriği çek ve yeni bir blok oluştur
+        // 4. EĞER YOKSA: Fetch ile içeriği çek ve yeni bir blok oluştur
         try {
             console.log(`İçerik fetch ile çekiliyor ve DOM'a ekleniyor: ${url}`);
             const response = await fetch(url);
@@ -96,16 +89,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const contentHtml = await response.text();
 
-            // Yeni bir div oluştur ve içeriği ona bas
             targetBlock = document.createElement('div');
-            targetBlock.className = 'course-content-block active'; // Başlangıçta aktif olarak ekle
-            targetBlock.dataset.contentUrl = url; // Daha sonra bulabilmek için URL'yi etiketle
+            targetBlock.className = 'course-content-block active';
+            targetBlock.dataset.contentUrl = url;
             targetBlock.innerHTML = contentHtml;
+            
+            // YENİ VE KRİTİK ADIM: Gelecekteki reset'ler için ses kaynaklarını data-src'ye kopyala
+            targetBlock.querySelectorAll('audio').forEach(audio => {
+                if (audio.hasAttribute('src')) {
+                    audio.dataset.src = audio.getAttribute('src');
+                }
+            });
 
-            // Oluşturulan yeni bloğu ana konteynere ekle
             courseContentContainer.appendChild(targetBlock);
-
-            // Ders içeriği görünümünü göster
             showView(courseContentView);
 
         } catch (error) {
@@ -114,16 +110,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-
-    // --- 3. OLAY DİNLEYİCİLERİ (EVENT LISTENERS) ---
+    // --- 3. OLAY DİNLEYİCİLERİ ---
     showExamsBtn.addEventListener('click', () => showView(examListView));
 
-    backToHeroBtn.addEventListener('click', (event) => {
-        event.preventDefault();
+    backToHeroBtn.addEventListener('click', (e) => {
+        e.preventDefault();
         showView(heroView);
     });
 
-    backToExamsBtn.addEventListener('click', () => showView(examListView));
+    backToExamsBtn.addEventListener('click', () => {
+        // Geri dönerken aktif olan sesleri durdur (isteğe bağlı ama iyi bir pratik)
+        const activeBlock = courseContentContainer.querySelector('.course-content-block.active');
+        if (activeBlock) {
+            activeBlock.querySelectorAll('audio').forEach(audio => audio.pause());
+        }
+        showView(examListView);
+    });
 
     examListContainer.addEventListener('click', (event) => {
         const listItem = event.target.closest('li');
@@ -136,11 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-
-    // --- 4. BAŞLANGIÇ DURUMU ---
-    // Akordiyon dinleyicisini SADECE BİR KEZ en başta kur
+    // --- 4. BAŞLANGIÇ ---
     initAccordion();
-
-    // Uygulama ilk açıldığında Karşılama Ekranı'nı göstererek başla
     showView(heroView);
 });
