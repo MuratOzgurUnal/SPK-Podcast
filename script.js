@@ -13,6 +13,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const courseContentContainer = document.getElementById('course-content-container');
     const courseTitleElement = document.getElementById('course-title');
 
+    // --- KRİTİK ADIM: iOS TESPİTİ ---
+    // Bu, sadece sorunlu olan cihazı hedef almamızı sağlar.
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
     // --- 2. ANA FONKSİYONLAR ---
 
     function showView(viewToShow) {
@@ -23,11 +27,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Akordiyon ve ses oynatma olaylarını yönetir.
-     * Sadece bir kere, sayfa başında kurulur.
+     * SADECE iOS İÇİN: "Derin uykudaki" ses elemanlarını zorla yeniden oluşturur.
+     * @param {HTMLElement} block - Ses elemanlarını içeren blok.
+     */
+    function forceWakeUpIOSAudio(block) {
+        const audioElements = block.querySelectorAll('audio');
+        
+        audioElements.forEach(audio => {
+            // Her bir ses elemanını klonla. cloneNode(true) tüm nitelikleri (src, controls vs.) kopyalar.
+            const audioClone = audio.cloneNode(true);
+            
+            // Orijinal (bozuk) elemanı, taze klonla DOM'da değiştir.
+            // Bu, Safari'yi elemanı tamamen yeniden başlatmaya zorlar.
+            audio.parentNode.replaceChild(audioClone, audio);
+        });
+        console.log(`${audioElements.length} adet ses elemanı iOS için yeniden oluşturuldu.`);
+    }
+
+
+    /**
+     * Tüm olay dinleyicilerini (akordiyon ve ses) kurar.
      */
     function initEventListeners() {
-        // Olay delegasyonu ile tüm tıklama olaylarını tek bir yerden yönetiyoruz.
         courseContentContainer.addEventListener('click', (event) => {
             const header = event.target.closest('.accordion-header');
             if (header) {
@@ -45,7 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Ses oynatma olayını dinleme
         courseContentContainer.addEventListener('play', (event) => {
             if (event.target.tagName === 'AUDIO') {
                 const currentAudio = event.target;
@@ -54,27 +74,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 allAudioElements.forEach(audio => {
                     if (audio !== currentAudio) {
                         audio.pause();
-                        // --- YENİ EKLENEN SATIR ---
-                        // Sesi sadece durdurma, aynı zamanda en başa sar.
                         audio.currentTime = 0; 
-                        // -------------------------
                     }
                 });
             }
         }, true);
     }
 
-
     /**
-     * Ders içeriğini gösterir. Bu fonksiyon fetch yapmaz,
-     * sadece önceden yüklenmiş içeriği görünür hale getirir.
+     * Önceden yüklenmiş ders içeriğini gösterir.
      */
     function showPreloadedContent(url, title) {
         const allContentBlocks = courseContentContainer.querySelectorAll('.course-content-block');
         allContentBlocks.forEach(block => block.classList.remove('active'));
 
         const targetBlock = courseContentContainer.querySelector(`.course-content-block[data-content-url="${url}"]`);
+        
         if (targetBlock) {
+            // --- iOS İÇİN KESİN ÇÖZÜMÜN UYGULANDIĞI YER ---
+            // Eğer tarayıcı iOS ise ve bu blok daha önce "uyandırılmadıysa",
+            // içindeki ses elemanlarını zorla yeniden oluştur.
+            if (isIOS && !targetBlock.dataset.wokenUp) {
+                forceWakeUpIOSAudio(targetBlock);
+                targetBlock.dataset.wokenUp = "true"; // Bu işlemi sadece bir kere yap.
+            }
+            // ----------------------------------------------------
+
             courseTitleElement.textContent = title;
             targetBlock.classList.add('active');
             showView(courseContentView);
@@ -88,66 +113,42 @@ document.addEventListener('DOMContentLoaded', () => {
      * Tüm ders içeriklerini sayfa açılır açılmaz arka planda yükler ve gizler.
      */
     async function preloadAllContent() {
-        const examsToPreload = [
-            { url: 'spk-level1.html', title: 'Sermaye Piyasası Faaliyetleri Düzey 1 Lisansı' }
-        ];
+        const examsToPreload = [{ url: 'spk-level1.html', title: 'Sermaye Piyasası Faaliyetleri Düzey 1 Lisansı' }];
 
         for (const exam of examsToPreload) {
             if (courseContentContainer.querySelector(`[data-content-url="${exam.url}"]`)) continue;
-
             try {
                 const response = await fetch(exam.url);
                 if (!response.ok) throw new Error(`Fetch error: ${response.status}`);
                 const contentHtml = await response.text();
-
                 const contentBlock = document.createElement('div');
                 contentBlock.className = 'course-content-block';
                 contentBlock.dataset.contentUrl = exam.url;
                 contentBlock.innerHTML = contentHtml;
-                
                 courseContentContainer.appendChild(contentBlock);
-                console.log(`İçerik önceden yüklendi ve gizlendi: ${exam.url}`);
-
             } catch (error) {
                 console.error(`İçerik önceden yüklenemedi: ${exam.url}`, error);
             }
         }
     }
 
-
-    // --- 3. OLAY DİNLEYİCİLERİ ---
-
-    showExamsBtn.addEventListener('click', () => {
-        showView(examListView);
-    });
-
-    backToHeroBtn.addEventListener('click', (event) => {
-        event.preventDefault();
-        showView(heroView);
-    });
-
+    // --- 3. DİĞER OLAY DİNLEYİCİLERİ ---
+    showExamsBtn.addEventListener('click', () => showView(examListView));
+    backToHeroBtn.addEventListener('click', (event) => { event.preventDefault(); showView(heroView); });
     backToExamsBtn.addEventListener('click', () => {
-        courseContentContainer.querySelectorAll('audio').forEach(audio => {
-            audio.pause();
-            audio.currentTime = 0;
-        });
+        courseContentContainer.querySelectorAll('audio').forEach(audio => { audio.pause(); audio.currentTime = 0; });
         showView(examListView);
     });
-
     examListContainer.addEventListener('click', (event) => {
         const listItem = event.target.closest('li');
         if (listItem) {
             const contentUrl = listItem.dataset.contentUrl;
             const examTitle = listItem.dataset.examTitle;
-            if (contentUrl && examTitle) {
-                showPreloadedContent(contentUrl, examTitle);
-            }
+            if (contentUrl && examTitle) { showPreloadedContent(contentUrl, examTitle); }
         }
     });
 
-
     // --- 4. BAŞLANGIÇ ADIMLARI ---
-    
     initEventListeners();
     preloadAllContent();
     showView(heroView);
