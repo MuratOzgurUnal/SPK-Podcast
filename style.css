@@ -17,7 +17,7 @@ body {
     font-family: 'Poppins', sans-serif;
     background-color: var(--light-bg);
     color: var(--dark-text);
-    overflow: hidden;
+    overflow: hidden; /* Kaydırma çubuklarını gizle */
 }
 
 .app-container {
@@ -79,15 +79,6 @@ body {
     border: 1px solid var(--border-color);
 }
 
-/* --- DİNAMİK İÇERİK BLOKLARI İÇİN --- */
-.course-content-block {
-    display: none; /* Varsayılan olarak gizli */
-}
-.course-content-block.active {
-    display: block; /* Aktif olduğunda görünür */
-}
-
-
 /* --- 1. KARŞILAMA EKRANI --- */
 #hero-view .hero-content {
     text-align: center;
@@ -147,7 +138,7 @@ body {
     box-shadow: 0 7px 20px rgba(79, 70, 229, 0.5);
 }
 
-/* --- 2. SINAV LİSTESİ --- */
+/* --- 2. SINAV LİSTESİ (YENİDEN TASARLANDI) --- */
 #exam-list-view h2 {
     font-size: 1.8rem;
     margin-bottom: 0.5rem;
@@ -295,7 +286,7 @@ body {
 }
 
 
-.accordion-item.active .header {
+.accordion-item.active .accordion-header {
     background-image: linear-gradient(to right, var(--primary-color), #6366f1);
     color: var(--white-text);
 }
@@ -349,26 +340,27 @@ audio {
     margin-top: 0;
 }
 
-/* --- İMZA --- */
+/* --- İMZA (DAHA AZ DİKKAT ÇEKİCİ) STİLİ --- */
 .signature {
     text-align: center;
-    margin-top: 5rem;
-    font-size: 0.8rem;
-    color: #9ca3af;
+    margin-top: 5rem; /* Boşluk artırıldı */
+    font-size: 0.8rem; /* Font küçültüldü */
+    color: #9ca3af; /* Renk soluklaştırıldı */
 }
 
+/* Ana sayfadaki imza için özel ayar */
 #hero-view .signature {
-    margin-top: 3rem;
-    color: #6b7280;
+    margin-top: 3rem; /* Boşluk ayarlandı */
+    color: #6b7280; /* Renk biraz daha belirgin */
 }
 
 .signature a {
-    color: inherit;
+    color: inherit; /* Rengi ana metinden alır, dikkat çekmez */
     font-weight: 500;
     text-decoration: none;
     transition: color 0.2s ease;
 }
 
 .signature a:hover {
-    color: var(--dark-text);
+    color: var(--dark-text); /* Sadece üzerine gelince renk belirginleşir */
 }
